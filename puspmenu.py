@@ -51,9 +51,8 @@ class PUSPMenu(object):
             table = PrettyTable()
             table.field_names = ["Opción", "Descripción"]
             table.add_row(["1", "Gestionar recursos y servicios"])
-            table.add_row(["2", "Ver análisis de datos"])
-            table.add_row(["3", "Cambiar perfil"])
-            table.add_row(["4", "Cerrar sesión"])
+            table.add_row(["2", "Cambiar perfil"])
+            table.add_row(["3", "Cerrar sesión"])
             print(table)
 
             opcion_admin = input("Ingrese el número de la opción deseada: ")
@@ -61,11 +60,8 @@ class PUSPMenu(object):
             if opcion_admin == '1':
                 self.ejecutar_opcion_gestion_recursos()
             elif opcion_admin == '2':
-                # Agrega aquí la lógica para ver análisis de datos
-                print("Función de análisis de datos en construcción.")
-            elif opcion_admin == '3':
                 self.cambiar_perfil()
-            elif opcion_admin == '4':
+            elif opcion_admin == '3':
                 break
             else:
                 print("Opción no válida. Por favor, ingrese un número válido.")
@@ -169,14 +165,13 @@ class PUSPMenu(object):
             if self.alquiler_computadora.alquilar():
                 self.movimientos.append("Alquiler de computadora: +1")
                 print("Computadora alquilada con éxito.")
-                opcion_devolucion = input("¿Desea devolver la computadora ahora? (Sí/No): ").lower()
-                if opcion_devolucion == 'si':
-                    self.devolver_computadora()
                 EXISTENCIAS["Computadoras"] -= 1  # Actualiza las existencias después de alquilar
+                self.verificar_devolucion_existencias_cero("Computadoras")
             else:
                 print("¡Existencias agotadas! No se pueden realizar más préstamos de computadoras.")
         else:
             print("¡Existencias de computadoras agotadas! No se pueden realizar más préstamos.")
+
 
 
     def devolver_computadora(self):
@@ -191,10 +186,8 @@ class PUSPMenu(object):
             if self.alquiler_bicicleta.reservar():
                 self.movimientos.append("Reserva de bicicleta: +1")
                 print("Bicicleta reservada con éxito.")
-                opcion_devolucion = input("¿Desea devolver la bicicleta ahora? (Sí/No): ").lower()
-                if opcion_devolucion == 'si':
-                    self.devolver_bicicleta()
                 EXISTENCIAS["Bicicletas"] -= 1  # Actualiza las existencias después de reservar
+                self.verificar_devolucion_existencias_cero("Bicicletas")
             else:
                 print("¡Existencias agotadas! No se pueden realizar más reservas de bicicletas.")
         else:
@@ -208,21 +201,47 @@ class PUSPMenu(object):
         else:
             print("No hay reservas para devolver en este momento.")
 
-    def ejecutar_opcion_pagar_comida(self, pago_comida):
-        if pago_comida.pagar():
-            self.saldo_inicial -= COSTO_COMIDA  # Ajusta según el costo de comida que hayas definido
-            self.movimientos.extend(pago_comida.movimientos)
-            print("Pago de comida realizado con éxito.")
-        else:
-            print("Stock insuficiente. No se puede realizar el pago de comida.")
+    def verificar_devolucion_existencias_cero(self, tipo_recurso):
+        if EXISTENCIAS[tipo_recurso] == 0:
+            opcion_devolucion = input(f"Las existencias de {tipo_recurso} llegaron a cero. ¿Desea hacer una devolución? (Sí/No): ").lower()
+            if opcion_devolucion == 'si':
+                if tipo_recurso == "Computadoras":
+                    self.devolver_computadora()
+                elif tipo_recurso == "Bicicletas":
+                    self.devolver_bicicleta()
+            else:
+                self.mostrar_alerta_devolucion_negada(tipo_recurso)
+                opcion_devolucion = input(f"Las existencias de {tipo_recurso} llegaron a cero. ¿Desea hacer una devolución? (Sí/No): ").lower()
 
-    def ejecutar_opcion_pagar_materiales_papeleria(self, pago_materiales_papeleria):
-        if pago_materiales_papeleria.pagar():
-            self.saldo_inicial -= COSTO_MATERIALES_PAPELERIA  # Ajusta según el costo de materiales de papelería que hayas definido
-            self.movimientos.extend(pago_materiales_papeleria.movimientos)
-            print("Pago de materiales de papelería realizado con éxito.")
+    def mostrar_alerta_devolucion_negada(self, tipo_recurso):
+        print(f"¡Alerta! No se realizó la devolución de {tipo_recurso}.")
+
+
+    def ejecutar_opcion_pagar_comida(self):
+        if EXISTENCIAS["Comida"] > 0:
+            cantidad_comida = int(input("Ingrese la cantidad de comida a comprar: "))
+            if cantidad_comida <= EXISTENCIAS["Comida"]:
+                self.saldo_inicial -= COSTO_COMIDA * cantidad_comida
+                self.movimientos.append(f"Compra de comida: +{cantidad_comida}")
+                print(f"Compra de comida realizada con éxito. Se compraron {cantidad_comida} unidades.")
+                EXISTENCIAS["Comida"] -= cantidad_comida  # Actualiza las existencias después de comprar
+            else:
+                print("Stock insuficiente. No se puede realizar la compra de comida.")
         else:
-            print("Stock insuficiente. No se puede realizar el pago de materiales de papelería.")
+            print("¡Existencias de comida agotadas! No se pueden realizar más compras.")
+
+    def ejecutar_opcion_pagar_materiales_papeleria(self):
+        if EXISTENCIAS["Materiales de papelería"] > 0:
+            cantidad_materiales = int(input("Ingrese la cantidad de materiales de papelería a comprar: "))
+            if cantidad_materiales <= EXISTENCIAS["Materiales de papelería"]:
+                self.saldo_inicial -= COSTO_MATERIALES_PAPELERIA * cantidad_materiales
+                self.movimientos.append(f"Compra de materiales de papelería: +{cantidad_materiales}")
+                print(f"Compra de materiales de papelería realizada con éxito. Se compraron {cantidad_materiales} unidades.")
+                EXISTENCIAS["Materiales de papelería"] -= cantidad_materiales  # Actualiza las existencias después de comprar
+            else:
+                print("Stock insuficiente. No se puede realizar la compra de materiales de papelería.")
+        else:
+            print("¡Existencias de materiales de papelería agotadas! No se pueden realizar más compras.")
     
 
     def consultar_historial_movimientos(self):
