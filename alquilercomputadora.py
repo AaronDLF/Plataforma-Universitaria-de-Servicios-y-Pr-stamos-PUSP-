@@ -1,4 +1,4 @@
-class AlquilerComputadora:
+class AlquilerComputadora(object):
     stock_inicial = 20
 
     def __init__(self):
@@ -23,7 +23,6 @@ class AlquilerComputadora:
             return True  # Indica que la devolución fue exitosa
         else:
             return False  # Indica que no hay préstamos para devolver
-
 
     def consultar_stock(self):
         return self.stock_disponible
