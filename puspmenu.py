@@ -1,5 +1,3 @@
-
-
 from prettytable import PrettyTable
 from colorama import Fore, Style
 from pyfiglet import Figlet
@@ -8,6 +6,7 @@ from alquilerbicicleta import AlquilerBicicleta
 from comida import PagoComida
 from materiales import PagoMaterialesPapeleria
 from gestion import GestionRecursosServicios
+
 
 COSTO_ALQUILER_COMPUTADORA = 100
 COSTO_RESERVA_BICICLETA = 20
@@ -25,6 +24,7 @@ EXISTENCIAS = {
 class PUSPMenu(object):
 
     def __init__(self, usuario):
+        self.iniciar_sesion()
         self.usuario = usuario
         self.saldo_inicial = 5000
         self.movimientos = []
@@ -35,6 +35,33 @@ class PUSPMenu(object):
         custom_fig = Figlet(font='slant')
         titulo = custom_fig.renderText("PUSP")
         print(Fore.BLUE + titulo + Style.RESET_ALL)
+
+    def iniciar_sesion(self):
+        print("Bienvenido al sistema PUSP.")
+        while True:
+            usuario_input = input("Ingrese su nombre de usuario: ")
+            contrasena_input = input("Ingrese su contraseña: ")
+
+            # Verifica las credenciales
+            if self.verificar_credenciales(usuario_input, contrasena_input):
+                print("Inicio de sesión exitoso. ¡Bienvenido, {}!".format(usuario_input))
+                self.usuario = usuario_input
+                break
+            else:
+                print("Credenciales incorrectas. Inténtelo de nuevo.")
+
+    def verificar_credenciales(self, usuario, contrasena):
+        # Ejemplos de credenciales para "admin" y "usuario_comun"
+        credenciales_admin = {"usuario": "admin", "contrasena": "admin123"}
+        credenciales_usuario_comun = {"usuario": "comun", "contrasena": "usuario123"}
+
+        if usuario == credenciales_admin["usuario"] and contrasena == credenciales_admin["contrasena"]:
+            return True  # Credenciales válidas para admin
+        elif usuario == credenciales_usuario_comun["usuario"] and contrasena == credenciales_usuario_comun["contrasena"]:
+            return True  # Credenciales válidas para usuario_comun
+        else:
+            return False  # Credenciales incorrectas
+
 
     def mostrar_menu(self):
         self.mostrar_titulo()
@@ -62,6 +89,7 @@ class PUSPMenu(object):
             elif opcion_admin == '2':
                 self.cambiar_perfil()
             elif opcion_admin == '3':
+                self.cerrar_sesion()
                 break
             else:
                 print("Opción no válida. Por favor, ingrese un número válido.")
@@ -69,9 +97,15 @@ class PUSPMenu(object):
     def cambiar_perfil(self):
         nuevo_perfil = input("Ingrese el nuevo perfil ('admin' o 'usuario'): ").lower()
         if nuevo_perfil in ['admin', 'usuario']:
-            self.usuario = nuevo_perfil
-            print(f"Perfil cambiado a: {self.usuario}")
-            self.mostrar_menu()
+            usuario_input = input("Ingrese su nombre de usuario: ")
+            contrasena_input = input("Ingrese su contraseña: ")
+
+            if self.verificar_credenciales(usuario_input, contrasena_input):
+                self.usuario = nuevo_perfil
+                print(f"Perfil cambiado a: {self.usuario}")
+                self.mostrar_menu()
+            else:
+                print("Credenciales incorrectas. No se pudo cambiar el perfil.")
         else:
             print("Perfil no válido. Por favor, ingrese 'admin' o 'usuario'.")
 
@@ -133,9 +167,14 @@ class PUSPMenu(object):
             elif opcion == '7':
                 self.cambiar_perfil()
             elif opcion == '8':
+                self.cerrar_sesion()
                 break
             else:
                 print("Opción no válida. Por favor, ingrese un número válido.")
+
+    def cerrar_sesion(self):
+        print("Sesión cerrada. ¡Hasta luego!")
+        exit()  # Sale del programa después de cerrar sesión
 
     def mostrar_inventario(self):
         print("\nInventario Actual:")
@@ -262,3 +301,8 @@ class PUSPMenu(object):
                 saldo_actual += COSTO_RESERVA_BICICLETA   
 
         print("Saldo actual: {}".format(saldo_actual))
+
+if __name__ == "__main__":
+    usuario_inicial = input("Ingrese su tipo de usuario (admin/usuario) **Debe digitar cualquiera de las 2 opciones dadas en los parentesis** ")
+    puspmenu = PUSPMenu(usuario_inicial)
+    puspmenu.mostrar_menu()
